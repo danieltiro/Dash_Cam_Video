@@ -1,0 +1,2 @@
+rootProject.name='Dash_Cam_Video'
+include ':app'

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context=".Activities.VideoActivity">
+
+    <RelativeLayout
+        android:id="@+id/wrapper"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:padding="24dp">
+
+        <TextView
+            android:id="@+id/textDevice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="5dp"
+            android:text="Nombre del dispositivo:" />
+
+        <Spinner
+            android:id="@+id/spinnerDeviceName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/textDevice"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="10dp" />
+
+        <TextView
+            android:id="@+id/textFechaIni"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="5dp"
+            android:layout_below="@+id/spinnerDeviceName"
+            android:text="Fecha inicial:" />
+
+        <EditText
+            android:id="@+id/fechaIni"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/textFechaIni"
+            android:layout_marginTop="10dp"
+            android:inputType="date"
+            android:focusable="false"
+            android:clickable="true"
+            android:maxLines="1"/>
+
+        <TextView
+            android:id="@+id/textFechaFin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="5dp"
+            android:layout_below="@+id/fechaIni"
+            android:text="Fecha final:" />
+
+        <EditText
+            android:id="@+id/fechaFin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/fechaIni"
+            android:layout_marginTop="10dp"
+            android:inputType="date"
+            android:focusable="false"
+            android:clickable="true"
+            android:maxLines="1"/>
+
+        <TextView
+            android:id="@+id/textCamara"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="5dp"
+            android:layout_below="@+id/fechaFin"
+            android:text="Camara" />
+
+        <Spinner
+            android:id="@+id/spinnerCamara"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/textCamara"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="10dp" />
+
+    </RelativeLayout>
+    <Button
+        android:id="@+id/button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:text="BUSCAR VIDEOS"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/boton_login"
+        android:textColor="@color/colorWhite" />
+
+</RelativeLayout>

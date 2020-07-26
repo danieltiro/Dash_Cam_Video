@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardView"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="5dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?android:attr/selectableItemBackground"
+    card_view:cardCornerRadius="4dp">
+
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/opcion_redondo"
+        android:padding="5dp" >
+
+        <ImageView
+            android:id="@+id/imagePhoto"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:scaleType="centerCrop"
+            android:src="@mipmap/ic_marker_online" />
+
+        <TextView
+            android:id="@+id/name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_toRightOf="@id/imagePhoto"
+            android:paddingLeft="5dp"
+            android:text="Carlo Estrada Solano" />
+
+        <TextView
+            android:id="@+id/imei"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:textSize="20sp"
+            android:layout_below="@id/name"
+            android:layout_toRightOf="@id/imagePhoto"
+            android:paddingLeft="5dp"
+            android:text="Placas: SX5487" />
+
+        <TextView
+            android:id="@+id/status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/imei"
+            android:layout_toRightOf="@id/imagePhoto"
+            android:paddingLeft="5dp"
+            android:text="Estado: Activo" />
+
+    </RelativeLayout>
+</androidx.cardview.widget.CardView>
