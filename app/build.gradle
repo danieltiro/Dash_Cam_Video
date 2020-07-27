@@ -45,4 +45,6 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp-urlconnection:3.6.0'
     implementation 'com.google.android.exoplayer:exoplayer:2.7.3'
     implementation 'com.google.android.exoplayer:extension-rtmp:2.7.3'
+    implementation 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:rtplibrary:1.8.4'
+
 }

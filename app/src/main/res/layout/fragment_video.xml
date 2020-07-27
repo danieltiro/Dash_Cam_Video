@@ -5,10 +5,40 @@
     android:layout_height="match_parent"
     tools:context=".Fragments.VideoFragment">
 
-    <com.google.android.exoplayer2.ui.PlayerView
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="250dp"
-        android:id="@+id/simple_player">
-    </com.google.android.exoplayer2.ui.PlayerView>
+        android:layout_height="match_parent"
+        android:layout_marginTop="2dp"
+        android:layout_gravity="center">
+
+        <com.google.android.exoplayer2.ui.PlayerView
+            android:layout_width="match_parent"
+            android:layout_height="250dp"
+            android:id="@+id/simple_player">
+        </com.google.android.exoplayer2.ui.PlayerView>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/status_microphone"
+            android:textFontWeight="5"
+            android:textAlignment="center"
+            android:text="STATUS CAMERA"
+            android:textSize="12sp"
+            android:gravity="center_horizontal" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:padding="5dp">
+        <Button
+            android:id="@+id/b_microphone"
+            android:layout_width="70dp"
+            android:layout_height="60dp"
+            android:background="@drawable/microphone"/>
+    </LinearLayout>
 
 </RelativeLayout>

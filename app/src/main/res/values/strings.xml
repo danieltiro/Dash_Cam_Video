@@ -2,5 +2,7 @@
     <string name="app_name">Dashcam</string>
     <string name="title_activity_maps">Dispositivo</string>
     <string name="title_activity_ubicacion">Dispositivos</string>
+    <string name="status_micro_recording">GRABANDO AUDIO...</string>
+    <string name="status_micro_connecting">CONECTANDO ...</string>
     <!-- TODO: Remove or change this placeholder text -->
 </resources>

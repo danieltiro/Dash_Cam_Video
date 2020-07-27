@@ -4,9 +4,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -14,11 +17,17 @@ import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.Switch;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.exoplayer2.ExoPlayerFactory;
@@ -33,24 +42,38 @@ import com.google.android.exoplayer2.trackselection.TrackSelector;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.BandwidthMeter;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.pedro.rtplibrary.rtmp.RtmpOnlyAudio;
 import com.rodimisas.dash_cam_video.Activities.DetailDeviceActivity;
 import com.rodimisas.dash_cam_video.Adapters.ApiAdapter;
 import com.rodimisas.dash_cam_video.Adapters.ApiAdapterIP;
 import com.rodimisas.dash_cam_video.R;
 import com.rodimisas.dash_cam_video.Responce.EquipmentItem;
 import com.rodimisas.dash_cam_video.Responce.ServerIP;
+import com.rodimisas.dash_cam_video.Responce.UrlTalk;
 import com.rodimisas.dash_cam_video.Responce.UrlVideo;
+import com.rodimisas.dash_cam_video.utils.STATUS_MICRO;
 import com.rodimisas.dash_cam_video.utils.Util;
+
+import net.ossrs.rtmp.ConnectCheckerRtmp;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.w3c.dom.Text;
 
 import java.util.Date;
 import java.util.logging.StreamHandler;
 
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+public class VideoFragment extends Fragment implements View.OnTouchListener, ConnectCheckerRtmp {
 
-public class VideoFragment extends Fragment {
+    private static final String TAG = "VideoFragment";
+
     private View rootView;
     private EquipmentItem equipo;
     private String cookie;
@@ -63,6 +86,10 @@ public class VideoFragment extends Fragment {
     private SimpleExoPlayer player;
     private ImageView fullscreenButton;
     boolean fullscreen = false;
+    private Button mMicrophone;
+    private TextView mStatusMicro;
+    private RtmpOnlyAudio rtmpOnlyAudio;
+    private Boolean isRecordAudio = false;
 
     public VideoFragment() {
     }
@@ -76,8 +103,17 @@ public class VideoFragment extends Fragment {
         cookie = Util.getCookiePrefs(prefs);
         ((DetailDeviceActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getServerIp();
+        mMicrophone = (Button)rootView.findViewById(R.id.b_microphone);
+        mStatusMicro = (TextView)rootView.findViewById(R.id.status_microphone);
+        mMicrophone.setOnTouchListener(this);
         // Inflate the layout for this fragment
         return rootView;
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        rtmpOnlyAudio = new RtmpOnlyAudio(this);
     }
 
     @Override
@@ -163,7 +199,6 @@ public class VideoFragment extends Fragment {
                     }
                 });
 
-
                 // Prepare the player with the source.
                 player.prepare(videoSource);
                 //auto start playing
@@ -175,5 +210,171 @@ public class VideoFragment extends Fragment {
                 Toast.makeText(getContext(),"Error URL_Video",Toast.LENGTH_LONG).show();
             }
         });
+    }
+
+    @Override
+    public boolean onTouch(View view, MotionEvent motionEvent) {
+        switch(view.getId()){
+            case R.id.b_microphone:
+                if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
+                    // Pressed
+                    mMicrophone.setPressed(true);
+                    startTalk(equipo.getImei());
+                } else if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
+                    // Released
+                    mMicrophone.setPressed(false);
+                    stopTalk(equipo.getImei());
+                }
+                break;
+        }
+        return true;
+    }
+
+    @Override
+    public void onConnectionSuccessRtmp() {
+        Log.d(TAG,"onConnectionSuccessRtmp");
+        getActivity().runOnUiThread(new Runnable() {
+            public void run() {
+                Toast.makeText(getContext(), "onConnectionSuccessRtmp", Toast.LENGTH_SHORT).show();
+                isRecordAudio = true;
+            }
+        });
+    }
+
+    @Override
+    public void onConnectionFailedRtmp(@NonNull final String reason) {
+        Log.e(TAG,"onConnectionFailedRtmp: " + reason);
+        getActivity().runOnUiThread(new Runnable() {
+            public void run() {
+                rtmpOnlyAudio.stopStream();
+                stopTalk(equipo.getImei());
+                Toast.makeText(getContext(), "onConnectionFailedRtmp: " + reason, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    @Override
+    public void onNewBitrateRtmp(long bitrate) {
+        Log.d(TAG,"onNewBitrateRtmp");
+    }
+
+    @Override
+    public void onDisconnectRtmp() {
+        Log.d(TAG,"onDisconnectRtmp");
+    }
+
+    @Override
+    public void onAuthErrorRtmp() {
+        Log.d(TAG,"onAuthErrorRtmp");
+    }
+
+    @Override
+    public void onAuthSuccessRtmp() {
+        Log.d(TAG,"onAuthSuccessRtmp");
+    }
+
+    public void startTalk(String imei){
+        if(!isRecordAudio){
+            //Toast.makeText(getContext(), "Inicia grabación de audio", Toast.LENGTH_SHORT).show();
+            updateStatusMicro(STATUS_MICRO.CONNECTING);
+            //START TALK
+            //http://live.jimivideo.com/srs-os/api?ver=2&method=sendInstruction&devKey=a15f493882ea4dbd96fe204a9f040471
+            // &devSecret=126588f6de5e4066a1e6ebe792d9873d&uuid=357730090901480&proNo=128
+            // &cmd={"appid":"A86947F92073A00","cmd":272}&token=123456&isw=3&appId=A86947F92073A00
+            Call<UrlTalk> talkCall = ApiAdapterIP.getApiService().sendTalk(
+                    "2",
+                    "sendInstruction",
+                    "a15f493882ea4dbd96fe204a9f040471",
+                    "126588f6de5e4066a1e6ebe792d9873d",
+                    imei,
+                    "128",
+                    "{\"appid\":\"A86947F92073A00\",\"cmd\":272}",
+                    "123456",
+                    "3",
+                    "A86947F92073A00"
+            );
+            talkCall.enqueue(new Callback<UrlTalk>() {
+                @Override
+                public void onResponse(Call<UrlTalk> call, Response<UrlTalk> response) {
+                    if(response.isSuccessful() && response.body() != null && response.body().getDataTalk() != null) {
+                        try {
+                            Log.d(TAG, response.body().toString());
+                            JSONObject object = new JSONObject(response.body().getDataTalk().getContentTalk());
+                            String urlTalk = object.get("talkUrl").toString();
+                            if(rtmpOnlyAudio.prepareAudio()) {
+                                rtmpOnlyAudio.startStream(urlTalk);
+                                isRecordAudio = true;
+                                updateStatusMicro(STATUS_MICRO.RECORDING);
+                            }
+                        } catch (JSONException e) {
+                            stopTalk(equipo.getImei());
+                            e.printStackTrace();
+                            updateStatusMicro(STATUS_MICRO.NONE);
+                        }
+                    }
+                }
+                @Override
+                public void onFailure(Call<UrlTalk> call, Throwable t) {
+                    stopTalk(equipo.getImei());
+                    //Toast.makeText(getContext(),"Error talkCall: " + t.getMessage(),Toast.LENGTH_LONG).show();
+                    updateStatusMicro(STATUS_MICRO.NONE);
+                }
+            });
+        }
+    }
+    public void stopTalk(String imei){
+        if(isRecordAudio) {
+            //Toast.makeText(getContext(), "Detener grabación de audio", Toast.LENGTH_SHORT).show();
+            updateStatusMicro(STATUS_MICRO.NONE);
+            rtmpOnlyAudio.stopStream();
+            isRecordAudio = false;
+            //STOP TALK
+            //http://live.jimivideo.com/srs-os/api?ver=2&method=sendInstruction&devKey=a15f493882ea4dbd96fe204a9f040471
+            // &devSecret=126588f6de5e4066a1e6ebe792d9873d&uuid=357730090901480&proNo=128
+            // &cmd={"appid":"A86947F92073A00","cmd":273}&token=123456&isw=3&appId=A86947F92073A00
+            Call<UrlTalk> talkCall = ApiAdapterIP.getApiService().sendTalk(
+                    "2",
+                    "sendInstruction",
+                    "a15f493882ea4dbd96fe204a9f040471",
+                    "126588f6de5e4066a1e6ebe792d9873d",
+                    imei,
+                    "128",
+                    "{\"appid\":\"A86947F92073A00\",\"cmd\":273}",
+                    "123456",
+                    "3",
+                    "A86947F92073A00"
+            );
+            talkCall.enqueue(new Callback<UrlTalk>() {
+                @Override
+                public void onResponse(Call<UrlTalk> call, Response<UrlTalk> response) {
+                    if(response.isSuccessful()) {
+                        Log.d(TAG, response.body().toString());
+                    }
+                }
+                @Override
+                public void onFailure(Call<UrlTalk> call, Throwable t) {
+                    Toast.makeText(getContext(),"Error talkCall: " + t.getMessage(),Toast.LENGTH_LONG).show();
+                }
+            });
+        }
+    }
+
+    public void updateStatusMicro(STATUS_MICRO statusMicro){
+        switch(statusMicro){
+            case NONE:
+                mStatusMicro.setVisibility(View.INVISIBLE);
+                mStatusMicro.setText("");
+                break;
+            case RECORDING:
+                mStatusMicro.setVisibility(View.VISIBLE);
+                mStatusMicro.setBackgroundColor(Color.RED);
+                mStatusMicro.setText(R.string.status_micro_recording);
+                break;
+            case CONNECTING:
+                mStatusMicro.setVisibility(View.VISIBLE);
+                mStatusMicro.setBackgroundColor(Color.YELLOW);
+                mStatusMicro.setText(R.string.status_micro_connecting);
+                break;
+        }
     }
 }
